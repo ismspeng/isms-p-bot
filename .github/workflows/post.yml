@@ -1,0 +1,27 @@
+name: Daily ISMS-P Post
+
+on:
+  schedule:
+    - cron: '0 0 * * *' # 한국 시간 매일 오전 9시에 실행
+  workflow_dispatch: # 수동으로 즉시 실행해보고 싶을 때 사용
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.9'
+
+      - name: Install dependencies
+        run: |
+          pip install google-api-python-client google-auth-oauthlib google-auth-httplib2
+
+      - name: Run script
+        env:
+          GOOGLE_CREDENTIALS: ${{ secrets.GOOGLE_CREDENTIALS }}
+        run: python main.py
