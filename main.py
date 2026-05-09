@@ -1,16 +1,16 @@
 import os
 import json
 from googleapiclient.discovery import build
-from google.oauth2.credentials import Credentials
+from google.oauth2 import service_account
 
 def post_blog():
     # 1. 금고에서 열쇠(JSON) 꺼내기
     creds_json = os.environ.get('GOOGLE_CREDENTIALS')
+    creds_info = json.loads(creds_json)
+    
     if not creds_json:
         print("에러: GOOGLE_CREDENTIALS 를 찾을 수 없습니다.")
         return
-
-    creds_info = json.loads(creds_json)
     
     # 2. 인증 정보 설정 (OAuth 2.0 방식)
     # credentials.json 내용 중 필요한 정보만 추출하여 인증합니다.
