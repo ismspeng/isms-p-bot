@@ -2,43 +2,64 @@ import os
 import json
 from googleapiclient.discovery import build
 from google.oauth2.credentials import Credentials
-from google.oauth2 import service_account # 추가된 부분
 
 def post_blog():
-    # 금고에서 열쇠 꺼내기
+    # 1. 금고에서 열쇠(JSON) 꺼내기
     creds_json = os.environ.get('GOOGLE_CREDENTIALS')
+    if not creds_json:
+        print("에러: GOOGLE_CREDENTIALS 를 찾을 수 없습니다.")
+        return
+
     creds_info = json.loads(creds_json)
     
-    # 열쇠를 사용하여 구글 서비스에 접속
-    # 주의: 여기서 에러가 난다면 'credentials.json'의 형식이 맞는지 확인이 필요합니다.
+    # 2. 인증 정보 설정 (OAuth 2.0 방식)
+    # credentials.json 내용 중 필요한 정보만 추출하여 인증합니다.
     try:
-        from google.oauth2 import credentials
-        # OAuth 2.0 클라이언트 정보를 로드합니다.
-        # 기존의 복잡한 로직 대신 더 안정적인 방식으로 변경했습니다.
-        creds = Credentials.from_authorized_user_info(creds_info) if 'refresh_token' in creds_info else None
-        
-        # 만약 위 방법이 안되면 아래 내용을 시도합니다 (보통의 경우)
-        if not creds:
-             print("인증 방식 확인 중...")
-             # 실제로는 이 부분에서 인증 처리가 필요하지만, 
-             # 일단은 블로그 주소가 맞는지 확인하는 로직부터 실행됩니다.
-             
+        creds = Credentials.from_authorized_user_info(creds_info)
     except Exception as e:
-        print(f"인증 에러 발생: {e}")
+        # 만약 위 방법이 안 될 경우를 대비한 예외 처리
+        from google.oauth2 import service_account
+        try:
+            creds = service_account.Credentials.from_service_account_info(creds_info)
+        except:
+            print(f"인증 생성 실패: {e}")
+            return
 
-    # 블로그 설정 (본인의 블로그 ID 숫자로 꼭 바꿔주세요!)
+    # 3. 블로그 ID 설정 (이미 확인하신 ID입니다)
     BLOG_ID = '3209144423549555087' 
 
     service = build('blogger', 'v3', credentials=creds)
 
+    # 4. 포스팅 내용 (학습용 5개 항목 예시)
     post_body = {
         'kind': 'blogger#post',
         'title': '오늘의 ISMS-P 및 개인정보보호법 학습',
-        'content': '<h3>오늘의 공부 내용</h3><p>1. 개인정보보호법 제1조...</p>'
+        'content': '''
+        <h2>[개인정보보호법]</h2>
+        <ul>
+            <li>1. 개인정보의 정의: 살아있는 개인에 관한 정보</li>
+            <li>2. 민감정보의 보호: 유전자정보, 범죄경력자료 등</li>
+            <li>3. 고유식별정보: 주민등록번호, 여권번호 등</li>
+            <li>4. 개인정보 처리 원칙: 목적 내 최소 수집</li>
+            <li>5. 정보주체의 권리: 열람, 정정, 삭제 권리</li>
+        </ul>
+        <br>
+        <h2>[ISMS-P 인증항목]</h2>
+        <ul>
+            <li>1.1.1 경영진의 참여: 최고경영자의 보안 의사결정</li>
+            <li>1.1.2 조직 구성: 정보보호 위원회 운영</li>
+            <li>1.1.3 책임 할당: 각 부서별 보안 역할 정의</li>
+            <li>1.2.1 정책 수립: 정보보호 및 개인정보보호 정책 수립</li>
+            <li>1.2.2 정책 검토: 연 1회 이상 정책의 타당성 검토</li>
+        </ul>
+        '''
     }
 
-    service.posts().insert(blogId=BLOG_ID, body=post_body).execute()
-    print("포스팅 성공!")
+    try:
+        service.posts().insert(blogId=BLOG_ID, body=post_body).execute()
+        print("🎉 블로그 포스팅에 성공했습니다!")
+    except Exception as e:
+        print(f"포스팅 실패: {e}")
 
 if __name__ == "__main__":
     post_blog()
