@@ -6,31 +6,30 @@ from google.oauth2 import service_account
 def post_blog():
     # 1. 금고에서 열쇠(JSON) 꺼내기
     creds_json = os.environ.get('GOOGLE_CREDENTIALS')
-    creds_info = json.loads(creds_json)
     
     if not creds_json:
-        print("에러: GOOGLE_CREDENTIALS 를 찾을 수 없습니다.")
+        print("에러: GOOGLE_CREDENTIALS를 찾을 수 없습니다.")
         return
-    
-    # 2. 인증 정보 설정 (OAuth 2.0 방식)
-    # credentials.json 내용 중 필요한 정보만 추출하여 인증합니다.
-    try:
-        creds = Credentials.from_authorized_user_info(creds_info)
-    except Exception as e:
-        # 만약 위 방법이 안 될 경우를 대비한 예외 처리
-        from google.oauth2 import service_account
-        try:
-            creds = service_account.Credentials.from_service_account_info(creds_info)
-        except:
-            print(f"인증 생성 실패: {e}")
-            return
 
-    # 3. 블로그 ID 설정 (이미 확인하신 ID입니다)
+    creds_info = json.loads(creds_json)
+    
+    # 2. 서비스 계정 인증 설정 (가장 확실한 로봇 전용 방식)
+    # 님께서 방금 생성하신 서비스 계정 전용 인증 로직입니다.
+    try:
+        creds = service_account.Credentials.from_service_account_info(
+            creds_info, 
+            scopes=['https://www.googleapis.com/auth/blogger']
+        )
+    except Exception as e:
+        print(f"인증 생성 실패: {e}")
+        return
+
+    # 3. 블로그 ID 설정
     BLOG_ID = '3209144423549555087' 
 
     service = build('blogger', 'v3', credentials=creds)
 
-    # 4. 포스팅 내용 (학습용 5개 항목 예시)
+    # 4. 포스팅 내용
     post_body = {
         'kind': 'blogger#post',
         'title': '오늘의 ISMS-P 및 개인정보보호법 학습',
@@ -56,10 +55,11 @@ def post_blog():
     }
 
     try:
+        # 글쓰기 명령 실행
         service.posts().insert(blogId=BLOG_ID, body=post_body).execute()
         print("🎉 블로그 포스팅에 성공했습니다!")
     except Exception as e:
-        print(f"포스팅 실패: {e}")
+        print(f"포스팅 실패 (권한 문제일 수 있음): {e}")
 
 if __name__ == "__main__":
     post_blog()
