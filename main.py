@@ -9,7 +9,7 @@ creds_json = os.environ.get('GOOGLE_CREDENTIALS')
 creds_data = json.loads(creds_json)
 
 # 블로그 설정 (여기에 본인 블로그 ID를 넣어야 합니다)
-BLOG_ID = '여기에_본인의_블로그_ID를_넣으세요' 
+BLOG_ID = '3209144423549555087' 
 
 def post_blog():
     creds = Credentials.from_authorized_user_info(creds_data)
