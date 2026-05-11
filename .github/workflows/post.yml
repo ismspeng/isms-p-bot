@@ -2,7 +2,7 @@ name: Daily ISMS-P Post
 
 on:
   schedule:
-    - cron: '0 0 * * *' # 한국 시간 오전 9시
+    - cron: '15 1 * * *' # 한국 시간 오전 10시 15분
   workflow_dispatch: # 수동 실행 버튼 생성
 
 jobs:
